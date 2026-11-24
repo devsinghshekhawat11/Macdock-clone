@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4859C0BC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacDock.Core.Tests", "tests\MacDock.Core.Tests\MacDock.Core.Tests.csproj", "{8AA6A0BD-7943-40CA-9E2F-832EB00A9603}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacDock.Interop", "src\MacDock.Interop\MacDock.Interop.csproj", "{376D53A3-278B-4B72-80F7-E266593C51C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{8AA6A0BD-7943-40CA-9E2F-832EB00A9603}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AA6A0BD-7943-40CA-9E2F-832EB00A9603}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AA6A0BD-7943-40CA-9E2F-832EB00A9603}.Release|Any CPU.Build.0 = Release|Any CPU
+		{376D53A3-278B-4B72-80F7-E266593C51C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{376D53A3-278B-4B72-80F7-E266593C51C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{376D53A3-278B-4B72-80F7-E266593C51C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{376D53A3-278B-4B72-80F7-E266593C51C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{642D9AA0-5217-43D2-AFE8-EEFF70B5689A} = {DD301932-8238-420B-9D6B-AE7AF0735043}
 		{8AA6A0BD-7943-40CA-9E2F-832EB00A9603} = {4859C0BC-532C-4F30-82A1-DE2B868AC44C}
+		{376D53A3-278B-4B72-80F7-E266593C51C5} = {DD301932-8238-420B-9D6B-AE7AF0735043}
 	EndGlobalSection
 EndGlobal
