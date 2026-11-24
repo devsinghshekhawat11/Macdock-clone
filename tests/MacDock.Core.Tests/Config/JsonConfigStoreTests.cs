@@ -70,4 +70,79 @@ public sealed class JsonConfigStoreTests : IDisposable
         Assert.True(File.Exists(ConfigPath));
         Assert.False(File.Exists(ConfigPath + ".tmp"));
     }
+
+    private DockConfig LoadFrom(string json)
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(ConfigPath, json);
+        return new JsonConfigStore(ConfigPath).Load();
+    }
+
+    [Fact]
+    public void LowercasePropertyNames_AreAccepted()
+    {
+        var config = LoadFrom("""{ "pins": [ { "id": "x", "displayName": "X", "target": "x.exe" } ] }""");
+        Assert.Equal("x", Assert.Single(config.Pins).Id);
+    }
+
+    [Fact]
+    public void TrailingCommasAndComments_AreAccepted()
+    {
+        var config = LoadFrom("""
+            {
+              // my pins
+              "Pins": [ { "Id": "x", "DisplayName": "X", "Target": "x.exe" }, ],
+            }
+            """);
+        Assert.Equal("x", Assert.Single(config.Pins).Id);
+        Assert.False(File.Exists(ConfigPath + ".bak"));
+    }
+
+    [Fact]
+    public void MissingPinsSection_UsesDefaultPins()
+    {
+        var config = LoadFrom("""{ "Settings": { "IconSize": 56 } }""");
+        Assert.Equal(DockConfig.Default.Pins, config.Pins);
+        Assert.Equal(56, config.Settings.IconSize);
+    }
+
+    [Fact]
+    public void NullPinsAndPinsWithoutTarget_AreDropped()
+    {
+        var config = LoadFrom("""{ "Pins": [ null, { "Id": "a", "DisplayName": "A", "Target": "" }, { "Id": "b", "DisplayName": "B", "Target": "b.exe" } ] }""");
+        Assert.Equal("b", Assert.Single(config.Pins).Id);
+    }
+
+    [Theory]
+    [InlineData(-48, 16)]
+    [InlineData(0, 16)]
+    [InlineData(1000, 256)]
+    [InlineData(64, 64)]
+    public void IconSize_IsClamped(double input, double expected)
+    {
+        var config = LoadFrom($$"""{ "Settings": { "IconSize": {{input}} } }""");
+        Assert.Equal(expected, config.Settings.IconSize);
+    }
+
+    [Theory]
+    [InlineData(0.2, 1.0)]
+    [InlineData(9, 3.0)]
+    [InlineData(2.0, 2.0)]
+    public void MaxScale_IsClamped(double input, double expected)
+    {
+        var config = LoadFrom($$"""{ "Settings": { "MaxScale": {{input}} } }""");
+        Assert.Equal(expected, config.Settings.MaxScale);
+    }
+
+    [Fact]
+    public void CorruptJson_BackupFails_StillReturnsDefault()
+    {
+        Directory.CreateDirectory(_dir);
+        Directory.CreateDirectory(ConfigPath + ".bak"); // a directory where the backup file should go makes File.Copy throw
+        File.WriteAllText(ConfigPath, "{ not json");
+
+        var config = new JsonConfigStore(ConfigPath).Load();
+
+        Assert.Equal(DockConfig.Default.Pins, config.Pins);
+    }
 }

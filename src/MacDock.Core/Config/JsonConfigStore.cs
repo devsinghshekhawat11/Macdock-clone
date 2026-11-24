@@ -8,7 +8,14 @@ namespace MacDock.Core.Config;
 /// </summary>
 public sealed class JsonConfigStore(string path) : IConfigStore
 {
-    private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+    // Lenient reading because people edit this file by hand: any casing, trailing commas and // comments.
+    private static readonly JsonSerializerOptions Json = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+    };
 
     /// <summary>Default location: <c>%APPDATA%\MacDock\config.json</c>.</summary>
     public static string DefaultPath => Path.Combine(
@@ -28,14 +35,14 @@ public sealed class JsonConfigStore(string path) : IConfigStore
         try
         {
             var config = JsonSerializer.Deserialize<DockConfig>(text, Json);
-            if (config is null) return DockConfig.Default;
-            // Older or hand-edited files may omit sections; fill them in rather than crash later.
-            return new DockConfig(config.Pins ?? [], config.Settings ?? new DockSettings());
+            return config is null ? DockConfig.Default : config.Normalize();
         }
         catch (JsonException)
         {
-            // Keep the user's broken file so hand edits aren't silently lost.
-            File.Copy(path, path + ".bak", overwrite: true);
+            // Keep the user's broken file so hand edits aren't silently lost (best effort).
+            try { File.Copy(path, path + ".bak", overwrite: true); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
             return DockConfig.Default;
         }
     }

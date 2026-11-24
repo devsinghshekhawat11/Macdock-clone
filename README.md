@@ -70,6 +70,9 @@ CI (GitHub Actions, `windows-latest`) builds and tests every push and PR.
 - [ ] Clicking Notepad launches it and the icon bounces.
 - [ ] A pin with a bad path shows a grey placeholder; clicking it does nothing and doesn't crash.
 - [ ] At 125% / 150% display scaling the dock still sits on the bottom edge, centered.
+- [ ] Changing display scaling while MacDock runs re-centers the dock on the bottom edge.
+- [ ] A pin like `"Target": "msedge.exe"` shows the real Edge icon.
+- [ ] Icon edges look smooth (no dark fringes).
 - [ ] Starting a second copy does nothing.
 - [ ] Task Manager shows ~0% CPU when the mouse isn't over the dock.
 - [ ] Clicks in the empty area just above the dock reach the window underneath.

@@ -48,14 +48,22 @@ public partial class DockWindow : Window
         WindowStyles.MakeShellSurface(new WindowInteropHelper(this).Handle);
     }
 
+    protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+    {
+        base.OnDpiChanged(oldDpi, newDpi); // WPF moves the window to Windows' suggested rect…
+        PlaceOnScreen();                  // …then we re-pin it to the bottom-center at the new DPI.
+    }
+
     /// <summary>
     /// Sizes the window once to the fully magnified bounds and pins it to the bottom-center of the
-    /// primary work area. WPF works in DIPs, as does <see cref="SystemParameters.WorkArea"/>, so this is
-    /// correct at any display scaling.
+    /// primary work area. The work area is read in physical pixels and converted with this window's
+    /// current DPI, so it stays correct when display scaling changes while the dock is running.
     /// </summary>
     private void PlaceOnScreen()
     {
-        Rect area = SystemParameters.WorkArea;
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        Rect px = MonitorInfo.PrimaryWorkAreaPixels();
+        var area = new Rect(px.X / dpi.DpiScaleX, px.Y / dpi.DpiScaleY, px.Width / dpi.DpiScaleX, px.Height / dpi.DpiScaleY);
         Width = Math.Min(_vm.MaxWindowWidth + SideChrome, area.Width);
         Height = _vm.Options.IconSize * _vm.Options.MaxScale + BottomChrome + BounceHeadroom;
         Left = area.Left + (area.Width - Width) / 2;
