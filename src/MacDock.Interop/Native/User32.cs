@@ -33,8 +33,6 @@ internal static class User32
     public const uint EVENT_OBJECT_CLOAKED = 0x8017;
     public const uint EVENT_OBJECT_UNCLOAKED = 0x8018;
 
-    public const byte VK_MENU = 0x12;
-    public const uint KEYEVENTF_KEYUP = 0x0002;
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -87,9 +85,6 @@ internal static class User32
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool PostMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extraInfo);
 
     [DllImport("user32.dll")]
     public static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmod, WinEventProc proc, uint processId, uint threadId, uint flags);

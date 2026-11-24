@@ -61,13 +61,10 @@ public sealed class WindowTracker : IWindowService, IDisposable
     {
         // Async so a hung app can't freeze the dock.
         if (User32.IsIconic(handle)) User32.ShowWindowAsync(handle, User32.SW_RESTORE);
-        if (User32.SetForegroundWindow(handle)) return;
-
-        // Windows refuses focus changes from processes it doesn't consider "in charge". A synthetic Alt
-        // press makes us the last input source, which lifts the restriction (a well-known shell workaround).
-        User32.keybd_event(User32.VK_MENU, 0, 0, UIntPtr.Zero);
+        // The dock received the click, so Windows normally allows us to hand focus over. No synthetic
+        // keyboard input is used as a fallback: input simulation makes Smart App Control treat the DLL as
+        // suspicious, and it could put the target app into menu mode.
         User32.SetForegroundWindow(handle);
-        User32.keybd_event(User32.VK_MENU, 0, User32.KEYEVENTF_KEYUP, UIntPtr.Zero);
     }
 
     public void Minimize(nint handle) => User32.ShowWindowAsync(handle, User32.SW_MINIMIZE);
