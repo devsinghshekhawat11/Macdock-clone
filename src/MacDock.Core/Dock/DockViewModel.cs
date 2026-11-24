@@ -20,6 +20,7 @@ public sealed partial class DockViewModel : ObservableObject
     private IReadOnlyList<string> _unpinnedOrder = [];
     private double _containerWidth;
     private double[] _restCenters = [];
+    private double? _cursorX;
 
     public DockViewModel(IConfigStore store, IAppLauncher launcher, IWindowService windows)
     {
@@ -59,6 +60,7 @@ public sealed partial class DockViewModel : ObservableObject
 
     public void UpdateCursor(double? x)
     {
+        _cursorX = x;
         var targets = Magnification.ComputeScales(_restCenters, x, Options);
         for (int i = 0; i < Items.Count && i < targets.Length; i++)
             Items[i].TargetScale = targets[i];
@@ -113,6 +115,7 @@ public sealed partial class DockViewModel : ObservableObject
         while (Items.Count > entries.Count) Items.RemoveAt(Items.Count - 1);
 
         SetContainerWidth(_containerWidth);
+        UpdateCursor(_cursorX); // icons moved under a still cursor: re-target magnification
         if (Items.Count != oldCount) LayoutChanged?.Invoke(this, EventArgs.Empty);
     }
 

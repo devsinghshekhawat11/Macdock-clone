@@ -221,6 +221,18 @@ public class DockViewModelTests
     }
 
     [Fact]
+    public void Refresh_RecomputesMagnification_ForStillCursor()
+    {
+        var f = Create();
+        double x = Magnification.RestCenters(3, f.Vm.Options, 600)[0];
+        f.Vm.UpdateCursor(x);
+        f.Windows.Set(0, Win(10, @"C:\z.exe")); // 4 icons now: every rest center moved
+
+        var expected = Magnification.ComputeScales(Magnification.RestCenters(4, f.Vm.Options, 600), x, f.Vm.Options);
+        Assert.Equal(expected, f.Vm.Items.Select(i => i.TargetScale));
+    }
+
+    [Fact]
     public void ItemCountChange_RaisesLayoutChanged()
     {
         var f = Create();

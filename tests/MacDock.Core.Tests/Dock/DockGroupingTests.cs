@@ -92,4 +92,12 @@ public class DockGroupingTests
         Assert.Equal(["x", "y"], entries.Take(2).Select(e => e.Pin!.Id));
         Assert.Null(entries[2].Pin);
     }
+
+    [Fact]
+    public void PackagedAppUnderWindowsApps_UsesAppsFolderTarget()
+    {
+        const string terminal = @"C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.21.0.0_x64__8wekyb3d8bbwe\WindowsTerminal.exe";
+        var e = Assert.Single(DockGrouping.Group([], [Win(terminal, "Microsoft.WindowsTerminal_8wekyb3d8bbwe!App")], []));
+        Assert.Equal(@"shell:AppsFolder\Microsoft.WindowsTerminal_8wekyb3d8bbwe!App", e.IconTarget);
+    }
 }

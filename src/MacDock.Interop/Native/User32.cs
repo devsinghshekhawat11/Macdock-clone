@@ -26,6 +26,8 @@ internal static class User32
     public const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
     public const uint EVENT_SYSTEM_MINIMIZEEND = 0x0017;
     public const uint EVENT_OBJECT_CREATE = 0x8000;
+    public const uint EVENT_OBJECT_DESTROY = 0x8001;
+    public const uint GA_ROOT = 2;
     public const uint EVENT_OBJECT_HIDE = 0x8003; // CREATE, DESTROY, SHOW, HIDE are contiguous
     public const uint EVENT_OBJECT_NAMECHANGE = 0x800C;
     public const uint EVENT_OBJECT_CLOAKED = 0x8017;
@@ -63,6 +65,12 @@ internal static class User32
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetShellWindow();
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

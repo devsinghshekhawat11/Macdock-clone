@@ -59,7 +59,8 @@ public sealed class WindowTracker : IWindowService, IDisposable
 
     public void Activate(nint handle)
     {
-        if (User32.IsIconic(handle)) User32.ShowWindow(handle, User32.SW_RESTORE);
+        // Async so a hung app can't freeze the dock.
+        if (User32.IsIconic(handle)) User32.ShowWindowAsync(handle, User32.SW_RESTORE);
         if (User32.SetForegroundWindow(handle)) return;
 
         // Windows refuses focus changes from processes it doesn't consider "in charge". A synthetic Alt
@@ -75,10 +76,13 @@ public sealed class WindowTracker : IWindowService, IDisposable
 
     private void OnWinEvent(IntPtr hook, uint evt, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
-        // Only whole windows matter; ignore events about carets, scrollbars, menu items, etc.
+        // Only whole top-level windows matter; ignore carets, scrollbars, menu items and child controls.
         if (idObject != User32.OBJID_WINDOW || idChild != User32.CHILDID_SELF) return;
-        _debounce?.Stop();
-        _debounce?.Start();
+        if (evt != User32.EVENT_OBJECT_DESTROY && User32.GetAncestor(hwnd, User32.GA_ROOT) != hwnd) return;
+
+        // Start the timer only if it isn't already running. Restarting it on every event would let an app
+        // that changes its title every few milliseconds postpone the rescan forever.
+        if (_debounce is { IsEnabled: false }) _debounce.Start();
     }
 
     private void Rescan()
@@ -88,13 +92,16 @@ public sealed class WindowTracker : IWindowService, IDisposable
 
         var windows = new List<WindowInfo>();
         var livePids = new HashSet<int>();
+        IntPtr desktop = User32.GetShellWindow(); // "Program Manager": visible and titled, but it's the desktop
         foreach (var hwnd in handles)
         {
+            if (hwnd == desktop || !User32.IsWindowVisible(hwnd)) continue;
             User32.GetWindowThreadProcessId(hwnd, out int pid);
-            if (!WindowFilter.IsTaskbarWindow(ReadTraits(hwnd, pid))) continue;
+            var traits = ReadTraits(hwnd, pid);
+            if (!WindowFilter.IsTaskbarWindow(traits)) continue;
 
             livePids.Add(pid);
-            windows.Add(new WindowInfo(hwnd, pid, ExePathFor(pid), AppUserModel.GetWindowAppId(hwnd), GetTitle(hwnd), User32.IsIconic(hwnd)));
+            windows.Add(new WindowInfo(hwnd, pid, ExePathFor(pid), AppUserModel.GetWindowAppId(hwnd), traits.Title, User32.IsIconic(hwnd)));
         }
 
         // Forget processes that have exited so a recycled pid can't inherit a stale exe path.

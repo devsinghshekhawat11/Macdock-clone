@@ -10,6 +10,8 @@ Center and Dynamic Island, built with **C# / .NET 8 / WPF** and Win32 interop.
 - **Click** an app: opens it if it isn't running, brings it to the front if it is, and minimizes it if it's already in front.
 - **Right-click** an app: Open / New window, Pin to Dock / Unpin from Dock, Quit.
 - **Drag** a pinned app left or right to reorder pins (saved to your config).
+- Known limitation: Windows doesn't let a normal app minimize or close windows of apps running as administrator
+  (e.g. Task Manager), so Quit and click-to-minimize do nothing for those.
 > Design: [`docs/superpowers/specs/2026-11-24-macdock-design.md`](docs/superpowers/specs/2026-11-24-macdock-design.md)
 
 ## Run it

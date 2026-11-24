@@ -62,14 +62,21 @@ public static class DockGrouping
         return -1;
     }
 
-    // UWP apps are hosted by ApplicationFrameHost.exe, so for them the exe says nothing about the app:
-    // use the window title and the AppsFolder entry instead. Everything else uses its own exe.
+    // Packaged apps must be addressed through their AppsFolder entry: UWP apps are hosted by
+    // ApplicationFrameHost.exe (whose exe says nothing about the app), and apps installed under
+    // \WindowsApps\ have version-specific paths that break on update and can't be launched directly.
+    // Everything else uses its own exe.
     private static bool IsHostedPackagedApp(WindowInfo w)
         => !string.IsNullOrEmpty(w.AppId)
-        && (string.IsNullOrEmpty(w.ExePath) || AppKey.FileName(w.ExePath).Equals("ApplicationFrameHost.exe", StringComparison.OrdinalIgnoreCase));
+        && (string.IsNullOrEmpty(w.ExePath)
+            || AppKey.FileName(w.ExePath).Equals("ApplicationFrameHost.exe", StringComparison.OrdinalIgnoreCase)
+            || w.ExePath.Contains(@"\WindowsApps\", StringComparison.OrdinalIgnoreCase));
 
     private static string DisplayNameFor(WindowInfo w)
-        => !IsHostedPackagedApp(w) && !string.IsNullOrEmpty(w.ExePath) ? AppKey.FileNameWithoutExtension(w.ExePath) : w.Title;
+        => !string.IsNullOrEmpty(w.ExePath) && !IsFrameHosted(w) ? AppKey.FileNameWithoutExtension(w.ExePath) : w.Title;
+
+    private static bool IsFrameHosted(WindowInfo w)
+        => w.ExePath is not null && AppKey.FileName(w.ExePath).Equals("ApplicationFrameHost.exe", StringComparison.OrdinalIgnoreCase);
 
     private static string IconTargetFor(WindowInfo w)
         => IsHostedPackagedApp(w) ? AppKey.AppsFolderPrefix + w.AppId : w.ExePath ?? string.Empty;

@@ -38,6 +38,8 @@ public partial class DockWindow : Window
 
         Root.SizeChanged += (_, _) => _vm.SetContainerWidth(Root.ActualWidth);
         _vm.LayoutChanged += (_, _) => PlaceOnScreen();
+        // Apps opening/closing under a still cursor re-target magnification; animate toward the new targets.
+        _vm.Items.CollectionChanged += (_, _) => StartAnimating();
         SystemParameters.StaticPropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(SystemParameters.WorkArea)) PlaceOnScreen();
