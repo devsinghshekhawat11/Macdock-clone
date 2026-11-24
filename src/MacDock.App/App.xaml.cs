@@ -2,6 +2,7 @@ using System.Windows;
 using MacDock.App.Views;
 using MacDock.Core.Config;
 using MacDock.Core.Dock;
+using MacDock.Core.Windows;
 using MacDock.Interop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,12 +41,15 @@ public partial class App : Application
         builder.Services.AddSingleton<IConfigStore>(_ => new JsonConfigStore(JsonConfigStore.DefaultPath));
         builder.Services.AddSingleton<IAppLauncher, ShellAppLauncher>();
         builder.Services.AddSingleton<IIconProvider, ShellIconProvider>();
+        builder.Services.AddSingleton<WindowTracker>();
+        builder.Services.AddSingleton<IWindowService>(sp => sp.GetRequiredService<WindowTracker>());
         builder.Services.AddSingleton<DockViewModel>();
         builder.Services.AddSingleton<DockWindow>();
         _host = builder.Build();
 
         EnsureConfigFileExists(_host.Services.GetRequiredService<IConfigStore>());
 
+        _host.Services.GetRequiredService<WindowTracker>().Start();
         _host.Services.GetRequiredService<DockWindow>().Show();
     }
 

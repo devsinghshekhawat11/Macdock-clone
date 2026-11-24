@@ -3,7 +3,15 @@
 An original macOS-style shell for Windows 11: a magnifying dock, and later a menu bar, Control
 Center and Dynamic Island, built with **C# / .NET 8 / WPF** and Win32 interop.
 
-> Status: **Milestone 1, the dock MVP.** The Windows taskbar is still visible; replacing it comes in milestone 3.
+> Status: **Milestone 2, running apps.** Every open app appears in the dock with a dot under it. The Windows
+> taskbar is still visible; replacing it comes in milestone 3.
+
+**Using the dock**
+- **Click** an app: opens it if it isn't running, brings it to the front if it is, and minimizes it if it's already in front.
+- **Right-click** an app: Open / New window, Pin to Dock / Unpin from Dock, Quit.
+- **Drag** a pinned app left or right to reorder pins (saved to your config).
+- Known limitation: Windows doesn't let a normal app minimize or close windows of apps running as administrator
+  (e.g. Task Manager), so Quit and click-to-minimize do nothing for those.
 > Design: [`docs/superpowers/specs/2026-11-24-macdock-design.md`](docs/superpowers/specs/2026-11-24-macdock-design.md)
 
 ## Run it
@@ -68,6 +76,21 @@ dotnet test
 ```
 
 CI (GitHub Actions, `windows-latest`) builds and tests every push and PR.
+
+## Manual test checklist (milestone 2)
+
+- [ ] Every app on your taskbar also appears in the dock (pinned ones in place, others after them), each with a dot.
+- [ ] Opening or closing an app updates the dock within about a tenth of a second.
+- [ ] Two Notepad windows → one Notepad icon. Click: Notepad comes to the front. Click again: it minimizes. Click again: it's restored.
+- [ ] Settings and Calculator show as two separate icons with their real icons (not one "ApplicationFrameHost").
+- [ ] Task Manager (runs elevated) appears in the dock.
+- [ ] Right-click a running unpinned app → Pin to Dock; restart MacDock → it's still pinned.
+- [ ] Right-click a running pinned app → Unpin from Dock → it stays (unpinned, with dot) until you quit it.
+- [ ] Right-click → Quit closes all of that app's windows (apps may ask to save).
+- [ ] Drag a pin to a new spot → order is kept after restarting MacDock. A drag never launches the app.
+- [ ] Switching between apps doesn't reorder the unpinned icons.
+- [ ] The dock never shows an icon for itself.
+- [ ] Task Manager shows ~0% CPU for MacDock while idle.
 
 ## Manual test checklist (milestone 1)
 

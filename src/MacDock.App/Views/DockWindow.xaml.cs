@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using MacDock.App.Converters;
@@ -30,11 +31,15 @@ public partial class DockWindow : Window
     {
         // Must exist before InitializeComponent resolves {StaticResource TargetToIcon}.
         Resources.Add("TargetToIcon", new TargetToIconConverter(icons));
+        Resources.Add("BoolToVisibility", new BooleanToVisibilityConverter());
         InitializeComponent();
         _vm = vm;
         DataContext = vm;
 
         Root.SizeChanged += (_, _) => _vm.SetContainerWidth(Root.ActualWidth);
+        _vm.LayoutChanged += (_, _) => PlaceOnScreen();
+        // Apps opening/closing under a still cursor re-target magnification; animate toward the new targets.
+        _vm.Items.CollectionChanged += (_, _) => StartAnimating();
         SystemParameters.StaticPropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(SystemParameters.WorkArea)) PlaceOnScreen();
@@ -104,6 +109,63 @@ public partial class DockWindow : Window
             CompositionTarget.Rendering -= OnRendering;
             _animating = false;
         }
+    }
+
+    // ---- Drag to reorder pins ---------------------------------------------------------
+    // Mouse down remembers the item; moving past a small threshold turns the press into a drag by taking
+    // mouse capture away from the button (which also cancels its click). Mouse up drops at the nearest slot.
+
+    private const double DragThreshold = 6;
+    private DockItemViewModel? _pressedItem;
+    private FrameworkElement? _pressedElement;
+    private Point _pressPoint;
+    private bool _dragging;
+
+    private void OnIconMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _pressedElement = sender as FrameworkElement;
+        _pressedItem = _pressedElement?.DataContext as DockItemViewModel;
+        _pressPoint = e.GetPosition(Root);
+    }
+
+    private void OnDockPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_pressedItem is null || _dragging || e.LeftButton != MouseButtonState.Pressed) return;
+        if (!_pressedItem.IsPinned) return;
+        if (Math.Abs(e.GetPosition(Root).X - _pressPoint.X) < DragThreshold) return;
+
+        _dragging = true;
+        if (_pressedElement is not null) _pressedElement.Opacity = 0.6;
+        Mouse.Capture(DockArea, CaptureMode.SubTree);
+    }
+
+    private void OnDockMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_dragging && _pressedItem is not null)
+        {
+            int from = _vm.Items.IndexOf(_pressedItem);
+            int to = _vm.IndexFromX(e.GetPosition(Root).X);
+            EndDrag();
+            _vm.MovePin(from, to);
+            e.Handled = true; // a drag is not a click
+            return;
+        }
+        _pressedItem = null;
+        _pressedElement = null;
+    }
+
+    private void OnDockLostCapture(object sender, MouseEventArgs e)
+    {
+        if (_dragging && !DockArea.IsMouseCaptureWithin) EndDrag();
+    }
+
+    private void EndDrag()
+    {
+        _dragging = false;
+        if (_pressedElement is not null) _pressedElement.Opacity = 1;
+        _pressedItem = null;
+        _pressedElement = null;
+        if (DockArea.IsMouseCaptured) DockArea.ReleaseMouseCapture();
     }
 
     private void OnQuitClick(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
