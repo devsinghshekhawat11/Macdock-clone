@@ -8,7 +8,7 @@ namespace MacDock.Interop;
 /// at the DPI the process started with, so it goes stale when the user changes display scaling while
 /// the dock runs; reading pixels and dividing by the window's current DPI is always right.
 /// </summary>
-public static partial class MonitorInfo
+public static class MonitorInfo
 {
     private const uint MONITOR_DEFAULTTOPRIMARY = 1;
 
@@ -38,10 +38,10 @@ public static partial class MonitorInfo
         public uint dwFlags;
     }
 
-    [LibraryImport("user32.dll")]
-    private static partial IntPtr MonitorFromPoint(POINT pt, uint flags);
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromPoint(POINT pt, uint flags);
 
-    [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
+    [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
+    private static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
 }

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace MacDock.Interop;
 
 /// <summary>Extended window styles that make a WPF window behave like a shell surface.</summary>
-public static partial class WindowStyles
+public static class WindowStyles
 {
     private const int GWL_EXSTYLE = -20;
     private const long WS_EX_TOOLWINDOW = 0x00000080; // hidden from Alt+Tab and the taskbar
@@ -16,9 +16,9 @@ public static partial class WindowStyles
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE));
     }
 
-    [LibraryImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
-    private static partial IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
-    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
-    private static partial IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 }
