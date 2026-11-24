@@ -7,6 +7,9 @@
     <AssemblyName>MacDock</AssemblyName>
     <RootNamespace>MacDock.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- No MacDock.exe: run as "dotnet MacDock.dll". Smart App Control blocks unsigned, locally built
+         exes, but the Microsoft-signed dotnet host can load our IL-only assemblies. -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <ItemGroup>

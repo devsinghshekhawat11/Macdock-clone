@@ -16,6 +16,12 @@ cd macdock-clone
 dotnet run --project src/MacDock.App -c Release
 ```
 
+> **"An Application Control policy has blocked this file"?** That's Windows 11 Smart App Control blocking an
+> unsigned exe. MacDock deliberately ships no exe (`UseAppHost=false`) and runs inside the Microsoft-signed
+> `dotnet` host, so `git pull` and run again. After a build you can also start it directly with
+> `dotnet src\MacDock.App\bin\Release\net8.0-windows\MacDock.dll`.
+> Don't turn Smart App Control off for this: it can't be turned back on without reinstalling Windows.
+
 - **Quit:** right-click the dock background, then choose **Quit MacDock**.
 - **Pins** live in `%APPDATA%\MacDock\config.json` (created on first run). Edit it, then restart:
 
