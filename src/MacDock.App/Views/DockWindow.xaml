@@ -20,7 +20,10 @@
               VerticalAlignment="Bottom"
               Margin="0,0,0,6"
               MouseMove="OnDockMouseMove"
-              MouseLeave="OnDockMouseLeave">
+              MouseLeave="OnDockMouseLeave"
+              PreviewMouseMove="OnDockPreviewMouseMove"
+              PreviewMouseLeftButtonUp="OnDockMouseUp"
+              LostMouseCapture="OnDockLostCapture">
 
             <!-- Invisible (alpha 1) hover zone, enabled only while hovering: lets the cursor travel
                  up over magnified icons without "leaving" the dock through the gaps between them. -->
@@ -51,23 +54,66 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button Command="{Binding LaunchCommand}"
-                                ToolTip="{Binding App.DisplayName}"
-                                Width="{Binding Size}"
-                                Height="{Binding Size}"
-                                Margin="4,0"
-                                VerticalAlignment="Bottom"
-                                Cursor="Hand"
-                                Focusable="False"
-                                behaviors:BounceBehavior.IsEnabled="True">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Image Source="{Binding App.Target, Converter={StaticResource TargetToIcon}}"
-                                           RenderOptions.BitmapScalingMode="HighQuality"
-                                           Stretch="Uniform" />
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <!-- The dot hangs below the icon (negative margin) into the plate's bottom padding. -->
+                        <Grid Margin="4,0" VerticalAlignment="Bottom" ClipToBounds="False">
+                            <Button x:Name="IconButton"
+                                    Command="{Binding ClickCommand}"
+                                    ToolTip="{Binding DisplayName}"
+                                    Width="{Binding Size}"
+                                    Height="{Binding Size}"
+                                    VerticalAlignment="Bottom"
+                                    Cursor="Hand"
+                                    Focusable="False"
+                                    PreviewMouseLeftButtonDown="OnIconMouseDown"
+                                    behaviors:BounceBehavior.IsEnabled="True">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Image Source="{Binding IconTarget, Converter={StaticResource TargetToIcon}}"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Stretch="Uniform" />
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Command="{Binding NewWindowCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Setter Property="Header" Value="Open" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                            <Setter Property="Header" Value="New window" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <MenuItem Command="{Binding TogglePinCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Setter Property="Header" Value="Pin to Dock" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                            <Setter Property="Header" Value="Unpin from Dock" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <Separator Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
+                                        <MenuItem Header="Quit"
+                                                  Command="{Binding QuitCommand}"
+                                                  Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Ellipse Width="4" Height="4"
+                                     Fill="#E6FFFFFF"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Bottom"
+                                     Margin="0,0,0,-7"
+                                     IsHitTestVisible="False"
+                                     Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
