@@ -19,9 +19,15 @@ public partial class App : Application
     private Mutex? _singleInstance;
     private IHost? _host;
 
+    /// <summary>Where unhandled exceptions are written, since a WinExe has no console to show them.</summary>
+    public static string CrashLogPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MacDock", "crash.log");
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += (_, args) => { ReportCrash(args.Exception); args.Handled = true; Shutdown(1); };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => ReportCrash(args.ExceptionObject as Exception);
 
         _singleInstance = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out bool createdNew);
         if (!createdNew)
@@ -48,6 +54,20 @@ public partial class App : Application
         _host?.Dispose();
         _singleInstance?.Dispose();
         base.OnExit(e);
+    }
+
+    private static void ReportCrash(Exception? ex)
+    {
+        string text = $"[{DateTime.Now:O}] {ex}{Environment.NewLine}";
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(CrashLogPath)!);
+            File.AppendAllText(CrashLogPath, text);
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        Console.Error.WriteLine(text); // visible when started with `dotnet run`
+        MessageBox.Show($"MacDock hit an error and will close.\n\n{ex?.Message}\n\nDetails: {CrashLogPath}", "MacDock", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     /// <summary>Writes the default config on first run so the user has a file to edit.</summary>
