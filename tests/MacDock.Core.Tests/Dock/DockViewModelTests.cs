@@ -111,3 +111,24 @@ public class DockViewModelTests
         Assert.False(vm.Tick(0.016));
     }
 }
+
+public class DockItemSizeTests
+{
+    private sealed class NoopLauncher : MacDock.Core.Dock.IAppLauncher
+    {
+        public bool TryLaunch(MacDock.Core.Config.PinnedApp app) => true;
+    }
+
+    [Fact]
+    public void Size_IsBaseSizeTimesScale_AndNotifies()
+    {
+        var item = new DockItemViewModel(new("a", "A", "a.exe"), new NoopLauncher(), baseSize: 50);
+        var changed = new List<string?>();
+        item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        item.Scale = 1.5;
+
+        Assert.Equal(75, item.Size, 9);
+        Assert.Contains(nameof(DockItemViewModel.Size), changed);
+    }
+}

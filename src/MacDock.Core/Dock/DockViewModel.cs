@@ -17,7 +17,7 @@ public sealed partial class DockViewModel : ObservableObject
     {
         var config = store.Load();
         Options = new MagnificationOptions(IconSize: config.Settings.IconSize, MaxScale: config.Settings.MaxScale);
-        Items = new ObservableCollection<DockItemViewModel>(config.Pins.Select(p => new DockItemViewModel(p, launcher)));
+        Items = new ObservableCollection<DockItemViewModel>(config.Pins.Select(p => new DockItemViewModel(p, launcher, Options.IconSize)));
     }
 
     public ObservableCollection<DockItemViewModel> Items { get; }
